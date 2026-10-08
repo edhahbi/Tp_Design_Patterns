@@ -135,103 +135,201 @@ Le diagramme ci-dessous représente les classes principales du projet, leurs
 héritages, leurs implémentations d'interfaces et leurs associations.
 
 ```mermaid
+
 classDiagram
-    direction TB
 
-    class Banque {
-        <<Singleton>>
-        -Banque INSTANCE
-        -Map~String, CompteBancaire~ comptes
-        -Banque()
-        +Banque getInstance()
-        +void ajouterCompte(String numeroCompte, double soldeInitial, double decouvertMax)
-        +void ajouterCompteObservable(String numeroCompte, double soldeInitial, double decouvertMax)
-        +void deposer(String numeroCompte, double montant, FraisStrategy strategy)
-        +void retier(String numeroCompte, double montant, FraisStrategy strategy)
-        +double getSolde(String numeroCompte)
-    }
+direction TB
 
-    class CompteBancaire {
-        -double solde
-        -double decouvertMax
-        +CompteBancaire(double soldeInitial, double decouvertMax)
-        ~void deposer(double montant, FraisStrategy strategy)
-        ~void retirer(double montant, FraisStrategy strategy)
-        +double getSolde()
-        -void verifierInvariant()
-        -double calculerFrais(double montant, FraisStrategy strategy)
-    }
+  
 
-    class CompteCourant {
-        +CompteCourant(double soldeInitial, double decouvertMax)
-    }
+class Banque {
 
-    class CompteEpargne {
-        +CompteEpargne(double soldeInitial)
-    }
+<<Singleton>>
 
-    class CompteOberservable {
-        -List~Observerateur~ observateurs
-        +CompteOberservable(double soldeInitial, double decouvertMax)
-        +void ajouterObservateur(Observerateur observateur)
-        +void retirerObservateur(Observerateur observateur)
-        ~void deposer(double montant, FraisStrategy strategy)
-        ~void retirer(double montant, FraisStrategy strategy)
-    }
+-Banque INSTANCE
 
-    class CompteFactory {
-        <<Factory>>
-        -CompteFactory()
-        +static CompteBancaire creer(TypeCompte type, double soldeInitial, double decouvertMax)
-    }
+-Map~String, CompteBancaire~ comptes
 
-    class TypeCompte {
-        <<enumeration>>
-        COURANT
-        EPARGNE
-    }
+-Banque()
 
-    class FraisStrategy {
-        <<interface>>
-        +double calculerMontant(double montant)
-    }
++Banque getInstance()
 
-    class FraisStandard {
-        +double calculerMontant(double montant)
-    }
++void ajouterCompte(String numeroCompte, double soldeInitial, double decouvertMax)
 
-    class FraisPremium {
-        +double calculerMontant(double montant)
-    }
++void ajouterCompteObservable(String numeroCompte, double soldeInitial, double decouvertMax)
 
-    class Observerateur {
-        <<interface>>
-        +void notifier(CompteBancaire compte, double montant)
-    }
++void deposer(String numeroCompte, double montant, FraisStrategy strategy)
 
-    class ServiceNotification {
-        +void notifier(CompteBancaire compte, double montant)
-    }
++void retier(String numeroCompte, double montant, FraisStrategy strategy)
 
-    Banque "1" *-- "0..*" CompteBancaire : gère
-    Banque ..> CompteOberservable : crée
-    Banque ..> FraisStrategy : transmet
++double getSolde(String numeroCompte)
 
-    CompteCourant --|> CompteBancaire
-    CompteEpargne --|> CompteBancaire
-    CompteOberservable --|> CompteBancaire
+}
 
-    CompteOberservable "1" o-- "0..*" Observerateur : notifie
-    ServiceNotification ..|> Observerateur
+  
 
-    FraisStandard ..|> FraisStrategy
-    FraisPremium ..|> FraisStrategy
-    CompteBancaire ..> FraisStrategy : utilise
+class CompteBancaire {
 
-    CompteFactory ..> TypeCompte : reçoit
-    CompteFactory ..> CompteBancaire : retourne
-    CompteFactory ..> CompteCourant : crée
-    CompteFactory ..> CompteEpargne : crée
+-double solde
+
+-double decouvertMax
+
++CompteBancaire(double soldeInitial, double decouvertMax)
+
+~void deposer(double montant, FraisStrategy strategy)
+
+~void retirer(double montant, FraisStrategy strategy)
+
++double getSolde()
+
+-void verifierInvariant()
+
+-double calculerFrais(double montant, FraisStrategy strategy)
+
+}
+
+  
+
+class CompteCourant {
+
++CompteCourant(double soldeInitial, double decouvertMax)
+
+}
+
+  
+
+class CompteEpargne {
+
++CompteEpargne(double soldeInitial)
+
+}
+
+  
+
+class CompteOberservable {
+
+-List~Observerateur~ observateurs
+
++CompteOberservable(double soldeInitial, double decouvertMax)
+
++void ajouterObservateur(Observerateur observateur)
+
++void retirerObservateur(Observerateur observateur)
+
+~void deposer(double montant, FraisStrategy strategy)
+
+~void retirer(double montant, FraisStrategy strategy)
+
+}
+
+  
+
+class CompteFactory {
+
+<<Factory>>
+
+-CompteFactory()
+
++static CompteBancaire creer(TypeCompte type, double soldeInitial, double decouvertMax)
+
+}
+
+  
+
+class TypeCompte {
+
+<<enumeration>>
+
+COURANT
+
+EPARGNE
+
+}
+
+  
+
+class FraisStrategy {
+
+<<interface>>
+
++double calculerMontant(double montant)
+
+}
+
+  
+
+class FraisStandard {
+
++double calculerMontant(double montant)
+
+}
+
+  
+
+class FraisPremium {
+
++double calculerMontant(double montant)
+
+}
+
+  
+
+class Observerateur {
+
+<<interface>>
+
++void notifier(CompteBancaire compte, double montant)
+
+}
+
+  
+
+class ServiceNotification {
+
++void notifier(CompteBancaire compte, double montant)
+
+}
+
+  
+
+Banque "1" *-- "0..*" CompteBancaire : gère
+
+Banque ..> CompteOberservable : crée
+
+Banque ..> FraisStrategy : transmet
+
+  
+
+CompteCourant --|> CompteBancaire
+
+CompteEpargne --|> CompteBancaire
+
+CompteOberservable --|> CompteBancaire
+
+  
+
+CompteOberservable "1" o-- "0..*" Observerateur : notifie
+
+ServiceNotification ..|> Observerateur
+
+  
+
+FraisStandard ..|> FraisStrategy
+
+FraisPremium ..|> FraisStrategy
+
+CompteBancaire ..> FraisStrategy : utilise
+
+  
+
+CompteFactory ..> TypeCompte : reçoit
+
+CompteFactory ..> CompteBancaire : retourne
+
+CompteFactory ..> CompteCourant : crée
+
+CompteFactory ..> CompteEpargne : crée
+
 ```
 
 ## Légende
