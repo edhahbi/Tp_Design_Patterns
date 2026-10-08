@@ -77,7 +77,55 @@ Les assertions de postcondition et d'invariant ne sont pas directement violées 
 
 `CompteBancaire` ne contient plus de singleton : chaque compte est créé avec son propre solde et son propre découvert autorisé. La classe `Banque` est le singleton, obtenu avec `Banque.getInstance()`. Elle associe un numéro unique à chaque compte et centralise les opérations : `ajouterCompte`, `deposer(numero, montant, strategie)` et `retier(numero, montant, strategie)`. Le numéro permet de choisir sans ambiguïté le compte concerné. Les opérations du compte sont package-private afin que les clients passent par la banque.
 
-## 7. Conclusion
+## 7. Quel pattern pour quel problème ?
+
+Le projet utilise plusieurs patrons, chacun répondant à un problème différent :
+
+| Patron | Problème traité | Solution dans le projet | Avantages |
+|---|---|---|---|
+| **Singleton** | Garantir qu'une seule banque centralise les comptes et fournir un point d'accès unique. | `Banque` possède un constructeur privé, une instance `INSTANCE` et la méthode `getInstance()`. | Évite plusieurs registres concurrents de comptes et centralise les opérations bancaires. |
+| **Factory Method / Factory** | Créer différents types de comptes sans exposer au client la logique de choix des classes concrètes. | `CompteFactory.creer(TypeCompte, ...)` retourne un `CompteCourant` ou un `CompteEpargne`. | Réduit le couplage au code client et regroupe les règles de création, notamment l'interdiction d'un découvert pour un compte épargne. |
+| **Strategy** | Pouvoir changer le calcul des frais sans modifier `CompteBancaire` ni `Banque`. | `FraisStrategy` est implémentée par `FraisStandard` et `FraisPremium`, puis fournie au compte lors du dépôt ou du retrait. | Respecte le principe ouvert/fermé, facilite l'ajout de nouvelles politiques de frais et rend les tests plus simples. |
+| **Observer** | Prévenir plusieurs services lorsqu'un compte change d'état après un dépôt ou un retrait. | `CompteOberservable` conserve une liste d'`Observerateur` et appelle `notifier(...)`; `ServiceNotification` est un observateur concret. | Découple le compte des services de notification et permet d'ajouter ou de retirer des observateurs dynamiquement. |
+
+Ces patrons sont complémentaires : `Banque` gère l'accès aux comptes,
+`CompteFactory` les crée, `Strategy` paramètre les frais et `Observer` diffuse
+les événements. Aucun patron ne remplace les contrats métier : il organise
+la collaboration entre les objets.
+
+## 8. Quels sont les avantages du contrat ?
+
+La programmation par contrats apporte plusieurs bénéfices :
+
+1. **Clarification des responsabilités.** Les préconditions indiquent ce que
+   l'appelant doit fournir, les postconditions indiquent ce que la méthode
+   garantit et les invariants définissent l'état toujours valide d'un compte.
+2. **Détection précoce des erreurs.** Une entrée invalide, comme un montant
+   négatif ou un dépassement du découvert, est rejetée à la frontière de
+   l'objet au lieu de laisser l'erreur se propager.
+3. **Documentation exécutable.** Les validations et les assertions rendent
+   une partie de la documentation vérifiable automatiquement par le programme
+   et par les tests JUnit.
+4. **Maintenance facilitée.** Lorsqu'une méthode est modifiée, son contrat
+   permet de vérifier que les garanties existantes sont conservées. Les
+   développeurs connaissent également les conditions à respecter avant
+   d'appeler la méthode.
+5. **Meilleure testabilité.** Chaque précondition, postcondition et invariant
+   fournit un cas de test identifiable. Les tests peuvent vérifier les
+   exceptions attendues et les valeurs du solde.
+6. **Respect du principe de substitution de Liskov.** Les contrats donnent
+   une règle précise aux sous-classes : elles ne doivent pas renforcer les
+   préconditions de `CompteBancaire` et doivent préserver ses invariants.
+7. **Fiabilité et sécurité métier.** L'invariant
+   `solde >= -decouvertMax` empêche qu'un compte atteigne un état bancaire
+   incohérent, même après une succession d'opérations.
+
+Il faut distinguer les erreurs de l'appelant et les erreurs internes : les
+préconditions destinées à l'API doivent être contrôlées par des exceptions
+toujours actives, tandis que les assertions sont adaptées aux invariants et
+postconditions internes, à condition d'activer `-ea` lors des tests.
+
+## 9. Conclusion
 
 Les exceptions protègent les préconditions qui dépendent de l'appelant, tandis que les assertions documentent les garanties internes. L'invariant borne le découvert tout au long de la vie du compte. Enfin, une sous-classe respectant LSP ne peut pas exiger davantage de ses clients que la classe parent.
 
